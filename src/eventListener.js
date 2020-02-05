@@ -2,17 +2,17 @@
  * @Author: wangzongyu
  * @Date: 2020-02-05 17:59:25
  * @LastEditors  : wangzongyu
- * @LastEditTime : 2020-02-05 23:44:35
+ * @LastEditTime : 2020-02-06 02:26:40
  * @Description:
  * @FilePath: \file-checker\src\listener.js
  */
-const path = require("path");
 const vscode = require("vscode");
 const { updateConfig } = require("./handleConfig");
 
 function initListener({
   context,
   activeEditor,
+  updateActiveEditor,
   workspace,
   triggerUpdateDecorations,
   updateFileList,
@@ -21,7 +21,7 @@ function initListener({
   //切换编辑页面事件，会触发样式更新
   vscode.window.onDidChangeActiveTextEditor(
     editor => {
-      activeEditor = editor;
+      updateActiveEditor(editor);
       if (editor) {
         triggerUpdateDecorations();
       }

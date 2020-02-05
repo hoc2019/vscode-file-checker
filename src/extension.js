@@ -2,7 +2,7 @@
  * @Author: wangzongyu
  * @Date: 2020-02-05 10:53:35
  * @LastEditors  : wangzongyu
- * @LastEditTime : 2020-02-06 01:09:35
+ * @LastEditTime : 2020-02-06 02:28:55
  * @Description:
  * @FilePath: \file-checker\extension.js
  */
@@ -118,10 +118,15 @@ function activate(context) {
     }
     timeout = setTimeout(updateDecorations, 500);
   }
+  //更新当前编辑窗口
+  function updateActiveEditor(editor) {
+    activeEditor = editor;
+  }
   //初始化事件监听
   initListener({
     context,
     activeEditor,
+    updateActiveEditor,
     workspace,
     triggerUpdateDecorations,
     updateFileList,
