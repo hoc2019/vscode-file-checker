@@ -2,7 +2,7 @@
  * @Author: wangzongyu
  * @Date: 2020-02-05 10:53:35
  * @LastEditors  : wangzongyu
- * @LastEditTime : 2020-02-06 00:16:06
+ * @LastEditTime : 2020-02-06 01:09:35
  * @Description:
  * @FilePath: \file-checker\extension.js
  */
@@ -12,7 +12,11 @@ const { updateStatusBarItem, getMyStatusBarItem } = require("./statusBar");
 const { initListener } = require("./eventListener");
 const { getDecorationType, getConfig } = require("./handleConfig");
 const getImagesList = require("./files");
-const treeView = require("./treeView");
+const {
+  initUnusedTreeView,
+  updateTreeView,
+  getUnusedList
+} = require("./treeView");
 
 function activate(context) {
   const workspace = vscode.workspace;
@@ -28,7 +32,7 @@ function activate(context) {
   let useFileList = [];
   const targetDir = path.resolve(rootPath, fileDir);
 
-  console.log("插件加载成功");
+  console.log("插件加载成功", { prefix, fileDir, dataFile, targetDir });
   function updateDecorations() {
     const uri = activeEditor.document.uri;
     //如果没有编辑中页面直接退出
@@ -38,7 +42,6 @@ function activate(context) {
     }
     if (fileList === null) {
       getFileList();
-      treeView.initAllTreeView(fileList);
     }
     const textRegEx = /(['"`])@I-[\s\S]*?\1/g;
     //获取编辑中页面的文本信息
@@ -52,7 +55,7 @@ function activate(context) {
     useFileList = text
       .match(textRegEx)
       .map(item => item.slice(1, -1).replace(prefix, ""));
-    treeView.initUnusedTreeView(useFileList, fileList);
+    initUnusedTreeView(useFileList, fileList);
     while ((match = textRegEx.exec(text))) {
       // 图片字符串其实位置
       const startIndex = match.index;
@@ -104,7 +107,7 @@ function activate(context) {
     clearTimeout(updateTimeout);
     updateTimeout = setTimeout(() => {
       getFileList();
-      treeView.updateTreeView(useFileList, fileList);
+      updateTreeView(useFileList, fileList);
     }, 1000);
   }
   //触发页面样式更新
@@ -132,7 +135,7 @@ function activate(context) {
   context.subscriptions.push(
     vscode.commands.registerCommand("itemClick", label => {
       vscode.window
-        .showWarningMessage(`确定删除${label}？`, { modal: true }, "确定")
+        .showWarningMessage(`确定删除 ${label}？`, { modal: true }, "确定")
         .then(action => {
           if (action === "确定") {
             workspace
@@ -140,6 +143,25 @@ function activate(context) {
               .then(files => {
                 workspace.fs.delete(files[0], { useTrash: true });
               });
+          }
+        });
+    })
+  );
+  context.subscriptions.push(
+    vscode.commands.registerCommand("fileChecker.deleteAll", () => {
+      const unusedList = getUnusedList();
+      if (!unusedList.length) return;
+      vscode.window
+        .showWarningMessage(`确定删除全部图片？`, { modal: true }, "确定")
+        .then(action => {
+          if (action === "确定") {
+            unusedList.forEach(label => {
+              workspace
+                .findFiles(new vscode.RelativePattern(targetDir, label))
+                .then(files => {
+                  workspace.fs.delete(files[0], { useTrash: true });
+                });
+            });
           }
         });
     })

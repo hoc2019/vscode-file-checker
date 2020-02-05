@@ -26,12 +26,27 @@
     "views": {
       "file-checker": [
         {
-          "id": "all-file",
-          "name": "全部资源文件"
-        },
-        {
           "id": "unused-file",
-          "name": "未使用资源文件"
+          "name": "未使用的资源文件"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "fileChecker.deleteAll",
+        "title": "deleteAll",
+        "icon": {
+          "light": "resources/light/delete.svg",
+          "dark": "resources/dark/delete.svg"
+        }
+      }
+    ],
+    "menus": {
+      "view/title": [
+        {
+          "command": "fileChecker.deleteAll",
+          "when": "view == unused-file",
+          "group": "navigation"
         }
       ]
     },

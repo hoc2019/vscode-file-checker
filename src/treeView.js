@@ -7,8 +7,11 @@ const differenceWith = (arr, val, comp) =>
   arr.filter(a => val.findIndex(b => comp(a, b)) === -1);
 
 class Dependency extends vscode.TreeItem {
-  constructor(label, collapsibleState, command) {
+  constructor(label, collapsibleState) {
     super(label, collapsibleState);
+  }
+  get tooltip() {
+    return `删除 ${this.label}`;
   }
   get command() {
     return {
@@ -20,17 +23,6 @@ class Dependency extends vscode.TreeItem {
         this.label // 目前这里我们只传递一个 label
       ]
     };
-  }
-}
-
-class TreeViewProvider {
-  getTreeItem(element) {
-    return element;
-  }
-  getChildren() {
-    return imageList.map(
-      item => new Dependency(item, vscode.TreeItemCollapsibleState.None)
-    );
   }
 }
 class UnusedTreeViewProvider {
@@ -45,13 +37,7 @@ class UnusedTreeViewProvider {
 }
 
 function updateTreeView(useList, fileList) {
-  initAllTreeView(fileList);
   initUnusedTreeView(useList, fileList);
-}
-
-function initAllTreeView(fileList) {
-  imageList = fileList;
-  vscode.window.registerTreeDataProvider("all-file", new TreeViewProvider());
 }
 
 function initUnusedTreeView(useList, fileList) {
@@ -63,4 +49,12 @@ function initUnusedTreeView(useList, fileList) {
   );
 }
 
-module.exports = { initAllTreeView, initUnusedTreeView, updateTreeView };
+function getUnusedList() {
+  return unusedImageList;
+}
+
+module.exports = {
+  initUnusedTreeView,
+  updateTreeView,
+  getUnusedList
+};
