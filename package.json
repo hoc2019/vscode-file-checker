@@ -2,7 +2,7 @@
   "name": "file-checker",
   "displayName": "file checker",
   "description": "自定义资源字符串检测",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "icon": "logo.png",
   "engines": {
     "vscode": "^1.41.0"
