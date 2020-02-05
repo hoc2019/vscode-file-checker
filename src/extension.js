@@ -2,11 +2,12 @@
  * @Author: wangzongyu
  * @Date: 2020-02-05 10:53:35
  * @LastEditors  : wangzongyu
- * @LastEditTime : 2020-02-05 23:03:48
+ * @LastEditTime : 2020-02-06 00:16:06
  * @Description:
  * @FilePath: \file-checker\extension.js
  */
 const vscode = require("vscode");
+const path = require("path");
 const { updateStatusBarItem, getMyStatusBarItem } = require("./statusBar");
 const { initListener } = require("./eventListener");
 const { getDecorationType, getConfig } = require("./handleConfig");
@@ -25,6 +26,7 @@ function activate(context) {
   let { prefix, fileDir, dataFile } = getConfig();
   let fileList = null;
   let useFileList = [];
+  const targetDir = path.resolve(rootPath, fileDir);
 
   console.log("插件加载成功");
   function updateDecorations() {
@@ -93,7 +95,7 @@ function activate(context) {
   function getFileList() {
     console.log("更新图片资源");
     //资源文件列表
-    fileList = getImagesList(rootPath, fileDir);
+    fileList = getImagesList(targetDir);
     updateDecorations();
   }
   //更新文件资源列表
@@ -120,14 +122,28 @@ function activate(context) {
     workspace,
     triggerUpdateDecorations,
     updateFileList,
-    rootPath,
-    fileDir
+    targetDir
   });
   //启动时存在打开的编辑页面触发一次样式更新
   if (activeEditor) {
     triggerUpdateDecorations();
   }
   context.subscriptions.push(myStatusBarItem);
+  context.subscriptions.push(
+    vscode.commands.registerCommand("itemClick", label => {
+      vscode.window
+        .showWarningMessage(`确定删除${label}？`, { modal: true }, "确定")
+        .then(action => {
+          if (action === "确定") {
+            workspace
+              .findFiles(new vscode.RelativePattern(targetDir, label))
+              .then(files => {
+                workspace.fs.delete(files[0], { useTrash: true });
+              });
+          }
+        });
+    })
+  );
 }
 
 exports.activate = activate;

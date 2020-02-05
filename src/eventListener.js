@@ -2,7 +2,7 @@
  * @Author: wangzongyu
  * @Date: 2020-02-05 17:59:25
  * @LastEditors  : wangzongyu
- * @LastEditTime : 2020-02-05 21:53:16
+ * @LastEditTime : 2020-02-05 23:44:35
  * @Description:
  * @FilePath: \file-checker\src\listener.js
  */
@@ -16,8 +16,7 @@ function initListener({
   workspace,
   triggerUpdateDecorations,
   updateFileList,
-  rootPath,
-  fileDir
+  targetDir
 }) {
   //切换编辑页面事件，会触发样式更新
   vscode.window.onDidChangeActiveTextEditor(
@@ -45,10 +44,7 @@ function initListener({
   workspace.onDidChangeConfiguration(updateConfig);
 
   let watcher = vscode.workspace.createFileSystemWatcher(
-    new vscode.RelativePattern(
-      path.resolve(rootPath, fileDir),
-      "**/*.{jpg,png}"
-    ),
+    new vscode.RelativePattern(targetDir, "**/*.{jpg,png}"),
     false,
     true,
     false
