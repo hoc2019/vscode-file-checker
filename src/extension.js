@@ -2,29 +2,29 @@
  * @Author: wangzongyu
  * @Date: 2020-02-05 10:53:35
  * @LastEditors  : wangzongyu
- * @LastEditTime : 2020-02-05 17:10:10
+ * @LastEditTime : 2020-02-05 19:17:06
  * @Description:
  * @FilePath: \file-checker\extension.js
  */
-const path = require("path");
 const vscode = require("vscode");
-const getImagesList = require("../utils/files");
+const { updateStatusBarItem, getMyStatusBarItem } = require("./statusBar");
+const { initListener } = require("./eventListener");
+const { getDecorationType, getConfig } = require("./handleConfig");
+const getImagesList = require("./files");
 
 function activate(context) {
   const workspace = vscode.workspace;
   const rootPath = workspace.workspaceFolders[0].uri.fsPath;
   //创建问题诊断集合
   const collection = vscode.languages.createDiagnosticCollection("fileChecker");
-  let myStatusBarItem = vscode.StatusBarItem;
+  let myStatusBarItem = getMyStatusBarItem();
   let activeEditor = vscode.window.activeTextEditor;
   let timeout = null;
   let updateTimeout = null;
-  let prefix = "@I-";
-  let fileDir = "src/input/dist/static/images";
-  let dataFile = "src/input/dist/data.js";
+  let { prefix, fileDir, dataFile } = getConfig();
   let fileList = [];
   //获取配置样式
-  let decorationType = getDecorationType();
+  // let decorationType = getDecorationType();
   console.log("插件加载成功");
   function updateDecorations() {
     const uri = activeEditor.document.uri;
@@ -81,15 +81,7 @@ function activate(context) {
     //更新状态栏统计异常中文标点个数
     updateStatusBarItem(filesDecoration.length);
     //激活中的编辑页面中文异常标点位置添加样式
-    activeEditor.setDecorations(decorationType, filesDecoration);
-  }
-  //状态栏展示异常标点统计
-  function updateStatusBarItem(num) {
-    if (num < 0) {
-      return;
-    }
-    myStatusBarItem.text = `${num}个资源未找到`;
-    myStatusBarItem.show();
+    activeEditor.setDecorations(getDecorationType(), filesDecoration);
   }
   //获取新的图片资源列表并刷新样式
   function getFileList() {
@@ -106,13 +98,6 @@ function activate(context) {
       getFileList();
     }, 1000);
   }
-  //获取选项设置里面设置的样式信息，这里暂时只有一个背景颜色。
-  function getDecorationType() {
-    const bgColor = workspace.getConfiguration().get("fileChecker.bgColor");
-    return vscode.window.createTextEditorDecorationType({
-      backgroundColor: bgColor
-    });
-  }
   //触发页面样式更新
   function triggerUpdateDecorations() {
     if (timeout) {
@@ -121,54 +106,21 @@ function activate(context) {
     }
     timeout = setTimeout(updateDecorations, 500);
   }
+  //初始化事件监听
+  initListener({
+    context,
+    activeEditor,
+    workspace,
+    triggerUpdateDecorations,
+    updateFileList,
+    rootPath,
+    fileDir
+  });
   //启动时存在打开的编辑页面触发一次样式更新
   if (activeEditor) {
+    console.log(111);
     triggerUpdateDecorations();
   }
-  //切换编辑页面事件，会触发样式更新
-  vscode.window.onDidChangeActiveTextEditor(
-    editor => {
-      activeEditor = editor;
-      if (editor) {
-        triggerUpdateDecorations();
-      }
-    },
-    null,
-    context.subscriptions
-  );
-  //编辑页面中的内容变化，会触发样式更新
-  workspace.onDidChangeTextDocument(
-    event => {
-      if (activeEditor && event.document === activeEditor.document) {
-        triggerUpdateDecorations();
-      }
-    },
-    null,
-    context.subscriptions
-  );
-  //更改选项中的设置会重新获取样式信息
-  workspace.onDidChangeConfiguration(() => {
-    decorationType = getDecorationType();
-  });
-
-  let watcher = vscode.workspace.createFileSystemWatcher(
-    new vscode.RelativePattern(
-      path.resolve(rootPath, fileDir),
-      "**/*.{jpg,png}"
-    ),
-    false,
-    true,
-    false
-  );
-  watcher.onDidDelete(updateFileList);
-  watcher.onDidCreate(updateFileList);
-
-  //状态栏统计信息位置
-  myStatusBarItem = vscode.window.createStatusBarItem(
-    vscode.StatusBarAlignment.Right,
-    100
-  );
-
   context.subscriptions.push(myStatusBarItem);
 }
 
