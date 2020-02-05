@@ -30,7 +30,7 @@
           "name": "全部资源文件"
         },
         {
-          "id": "unUse-file",
+          "id": "unused-file",
           "name": "未使用资源文件"
         }
       ]

@@ -1,8 +1,10 @@
 const vscode = require("vscode");
-const path = require("path");
-const getImagesList = require("./files");
 
 let imageList = [];
+let unusedImageList = [];
+
+const differenceWith = (arr, val, comp) =>
+  arr.filter(a => val.findIndex(b => comp(a, b)) === -1);
 
 class Dependency extends vscode.TreeItem {
   constructor(label, collapsibleState, command) {
@@ -20,10 +22,34 @@ class TreeViewProvider {
     );
   }
 }
+class UnusedTreeViewProvider {
+  getTreeItem(element) {
+    return element;
+  }
+  getChildren() {
+    return unusedImageList.map(
+      item => new Dependency(item, vscode.TreeItemCollapsibleState.None)
+    );
+  }
+}
 
-function initAllTreeView(rootPath, fileDir) {
-  imageList = getImagesList(rootPath, fileDir);
+function updateTreeView(useList, fileList) {
+  initAllTreeView(fileList);
+  initUnusedTreeView(useList, fileList);
+}
+
+function initAllTreeView(fileList) {
+  imageList = fileList;
   vscode.window.registerTreeDataProvider("all-file", new TreeViewProvider());
 }
 
-module.exports = { initAllTreeView };
+function initUnusedTreeView(useList, fileList) {
+  const useImageList = [...new Set(useList)];
+  unusedImageList = differenceWith(fileList, useImageList, (a, b) => a === b);
+  vscode.window.registerTreeDataProvider(
+    "unused-file",
+    new UnusedTreeViewProvider()
+  );
+}
+
+module.exports = { initAllTreeView, initUnusedTreeView, updateTreeView };
