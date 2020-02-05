@@ -2,7 +2,7 @@
  * @Author: wangzongyu
  * @Date: 2020-02-05 10:53:35
  * @LastEditors  : wangzongyu
- * @LastEditTime : 2020-02-05 19:17:06
+ * @LastEditTime : 2020-02-05 22:08:31
  * @Description:
  * @FilePath: \file-checker\extension.js
  */
@@ -11,6 +11,7 @@ const { updateStatusBarItem, getMyStatusBarItem } = require("./statusBar");
 const { initListener } = require("./eventListener");
 const { getDecorationType, getConfig } = require("./handleConfig");
 const getImagesList = require("./files");
+const treeView = require("./treeView");
 
 function activate(context) {
   const workspace = vscode.workspace;
@@ -22,10 +23,11 @@ function activate(context) {
   let timeout = null;
   let updateTimeout = null;
   let { prefix, fileDir, dataFile } = getConfig();
-  let fileList = [];
+  let fileList = null;
   //获取配置样式
   // let decorationType = getDecorationType();
   console.log("插件加载成功");
+  treeView.initAllTreeView(rootPath, fileDir);
   function updateDecorations() {
     const uri = activeEditor.document.uri;
     //如果没有编辑中页面直接退出
@@ -33,7 +35,7 @@ function activate(context) {
     if (!isTargetFile) {
       return;
     }
-    if (fileList.length === 0) {
+    if (fileList === null) {
       getFileList();
     }
     const textRegEx = /(['"`])@I-[\s\S]*?\1/g;
@@ -45,6 +47,7 @@ function activate(context) {
     const diagnosticList = [];
     //匹配到的图片字符串
     let match;
+    console.log(fileList);
     while ((match = textRegEx.exec(text))) {
       // 图片字符串其实位置
       const startIndex = match.index;
@@ -81,6 +84,7 @@ function activate(context) {
     //更新状态栏统计异常中文标点个数
     updateStatusBarItem(filesDecoration.length);
     //激活中的编辑页面中文异常标点位置添加样式
+    console.log(filesDecoration);
     activeEditor.setDecorations(getDecorationType(), filesDecoration);
   }
   //获取新的图片资源列表并刷新样式
@@ -96,6 +100,7 @@ function activate(context) {
     clearTimeout(updateTimeout);
     updateTimeout = setTimeout(() => {
       getFileList();
+      treeView.initTreeView(rootPath, fileDir);
     }, 1000);
   }
   //触发页面样式更新
@@ -118,7 +123,6 @@ function activate(context) {
   });
   //启动时存在打开的编辑页面触发一次样式更新
   if (activeEditor) {
-    console.log(111);
     triggerUpdateDecorations();
   }
   context.subscriptions.push(myStatusBarItem);

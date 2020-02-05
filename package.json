@@ -14,6 +14,27 @@
   ],
   "main": "./src/extension.js",
   "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "file-checker",
+          "title": "file checker list",
+          "icon": "media/dep.svg"
+        }
+      ]
+    },
+    "views": {
+      "file-checker": [
+        {
+          "id": "all-file",
+          "name": "全部资源文件"
+        },
+        {
+          "id": "unUse-file",
+          "name": "未使用资源文件"
+        }
+      ]
+    },
     "configuration": {
       "type": "object",
       "title": "File Checker",

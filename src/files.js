@@ -2,7 +2,7 @@
  * @Author: wangzongyu
  * @Date: 2020-02-05 13:05:39
  * @LastEditors  : wangzongyu
- * @LastEditTime : 2020-02-05 15:09:30
+ * @LastEditTime : 2020-02-05 21:33:31
  * @Description:
  * @FilePath: \file-checker\utils\files.js
  */
@@ -31,7 +31,6 @@ function displayFile(p) {
 
 function getImagesList(rootPath, targetDir) {
   const p = path.resolve(rootPath, targetDir);
-  console.log(p);
   imgFileList = [];
   displayFile(p);
   return imgFileList;
